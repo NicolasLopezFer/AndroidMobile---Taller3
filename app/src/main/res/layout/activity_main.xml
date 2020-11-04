@@ -1,18 +1,69 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:awesome="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:layout_weight="1"
+    android:fillViewport="true"
     tools:context=".MainActivity">
 
+    <LinearLayout
+        android:id="@+id/linearLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="32dp"
+        android:orientation="horizontal"
+        android:padding="10dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent">
+
+        <cyd.awesome.material.AwesomeButton
+            android:id="@+id/btnLogin"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginRight="10dp"
+            android:layout_weight="1"
+            android:padding="10dp"
+            android:text="LOGIN"
+            android:textSize="25sp"
+            awesome:awesome_font="font_awesome"
+            awesome:awesome_icon_left="FA_SIGN_IN"
+            awesome:awesome_rounded_corners="true"
+            awesome:awesome_type="bootstrap_success" />
+
+        <cyd.awesome.material.AwesomeButton
+            android:id="@+id/btnSignUp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="10dp"
+            android:layout_weight="1"
+            android:padding="10dp"
+            android:text="SIGNUP"
+            android:textSize="25sp"
+            awesome:awesome_font="font_awesome"
+            awesome:awesome_icon_left="FA_USER_PLUS"
+            awesome:awesome_rounded_corners="true"
+            awesome:awesome_type="material_cyan" />
+
+    </LinearLayout>
+
     <TextView
+        android:id="@+id/textView2"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Hello World!"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        android:fontFamily="@font/quicksand_medium"
+        android:text="¡Bienvenido!"
+        android:textColor="@color/teal_200"
+        android:textSize="48sp"
+        app:layout_constraintBottom_toTopOf="@+id/linearLayout"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.75"
+        android:shadowColor="#272424"
+        android:shadowRadius="5"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
