@@ -2,4 +2,5 @@
     <string name="app_name">Taller3</string>
     <string name="title_activity_main_map">Map</string>
     <string name="title_activity_user_distance_map">Map</string>
+    <string name="errorValidacion">Espacio necesario</string>
 </resources>
