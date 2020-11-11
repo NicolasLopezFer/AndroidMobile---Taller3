@@ -8,7 +8,7 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 
-public class PermissionHablder {
+public class Util {
     public static void requestPermission(final Activity activity, final String permissionCode , String justificacion, final int idCode) {
         if (ActivityCompat.shouldShowRequestPermissionRationale(activity,
                 permissionCode)) {
