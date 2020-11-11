@@ -121,23 +121,15 @@ public class SignUpActivity extends AppCompatActivity {
         });
 
         fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
-        locationRequest = createLocationRequest();
 
         btnCoordenadas.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                locationCallback = new LocationCallback(){
-                    @Override
-                    public void onLocationResult(LocationResult locationResult) {
-                        Location location = locationResult.getLastLocation();
-                        //Log.i("LOCATION", "Location update in the callback:" + location);
-                        if (location != null) {
-                            updateLocation();
-                        }
-                    }
-                };
+                updateLocation();
             }
         });
+
+        Util.requestPermission(SignUpActivity.this, Manifest.permission.ACCESS_FINE_LOCATION, "", LOCATION_CODE);
 
         try{
             setProfilePic();
@@ -146,22 +138,12 @@ public class SignUpActivity extends AppCompatActivity {
         }
     }
 
-    private LocationRequest createLocationRequest() {
-        LocationRequest myRequest = new LocationRequest();
-        myRequest.setInterval(1000);
-        myRequest.setFastestInterval(5000);
-        myRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
-        return myRequest;
-    }
-
-
     private void updateLocation() {
             if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
 
                 LocationSettingsRequest.Builder builder = new LocationSettingsRequest.Builder().addLocationRequest(locationRequest);
                 SettingsClient client = LocationServices.getSettingsClient(this);
                 Task<LocationSettingsResponse> task = client.checkLocationSettings(builder.build());
-
 
                 /*Si el GPS esta apagado pregunta si lo puede prender*/
                 task.addOnFailureListener(this, new OnFailureListener() {
@@ -185,13 +167,17 @@ public class SignUpActivity extends AppCompatActivity {
                     }
                 });
 
+
+
                 fusedLocationProviderClient.getLastLocation().addOnSuccessListener(this, new OnSuccessListener<Location>() {
                     @Override
                     public void onSuccess(Location location) {
                         Log.i("LOCATION", "onSuccess location");
                         if (location != null) {
-                            latitud.setText((int)location.getLatitude());
-                            longitud.setText((int)location.getLongitude());
+                            double lat = location.getLatitude();
+                            double lon = location.getLongitude();
+                            latitud.setText(Double.toString(lat));
+                            longitud.setText(Double.toString(lon));
                         }
                     }
                 });
@@ -264,7 +250,7 @@ public class SignUpActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        startLocationUpdates();
+        updateLocation();
     }
 
     @Override
