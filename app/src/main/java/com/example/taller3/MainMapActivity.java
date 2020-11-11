@@ -9,6 +9,9 @@ import android.Manifest;
 import android.content.Intent;
 import android.content.IntentSender;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
 import android.location.Location;
 import android.os.Bundle;
 import android.os.Looper;
@@ -42,6 +45,11 @@ import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 
 import org.json.JSONArray;
@@ -64,6 +72,7 @@ public class MainMapActivity extends FragmentActivity implements OnMapReadyCallb
     private static final int REQUEST_CHECK_SETTINGS = 12;
     private Marker locationMarker;
     private int contador = 0;
+    private int contadorSub = 0;
     private FrameLayout frameLayout;
 
     private FloatingActionButton disponible;
@@ -71,6 +80,11 @@ public class MainMapActivity extends FragmentActivity implements OnMapReadyCallb
     private FloatingActionButton lista;
 
     private FirebaseAuth mAuth;
+    private FirebaseDatabase database;
+    private DatabaseReference dbRefLocation;
+
+
+    private Boolean estado = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -83,15 +97,22 @@ public class MainMapActivity extends FragmentActivity implements OnMapReadyCallb
 
         mAuth = FirebaseAuth.getInstance();
 
+        database = FirebaseDatabase.getInstance();
 
         disponible = findViewById(R.id.disponible);
         logout = findViewById(R.id.logout);
         lista = findViewById(R.id.lista);
 
+        Drawable dr = getDrawable(R.drawable.logout);
+        Bitmap bitmap = ((BitmapDrawable) dr).getBitmap();
+        Drawable d = new BitmapDrawable(getResources(), Bitmap.createScaledBitmap(bitmap, 80, 80, true));
+        logout.setImageDrawable(d);
+
+
         lista.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(MainMapActivity.this,ActiveUsersActivity.class);
+                Intent intent = new Intent(MainMapActivity.this, ActiveUsersActivity.class);
                 startActivity(intent);
             }
         });
@@ -99,10 +120,31 @@ public class MainMapActivity extends FragmentActivity implements OnMapReadyCallb
         logout.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(MainMapActivity.this,MainActivity.class);
+                Intent intent = new Intent(MainMapActivity.this, MainActivity.class);
                 mAuth.signOut();
                 intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
                 startActivity(intent);
+            }
+        });
+
+        disponible.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+
+                Drawable d;
+                if (estado) {
+                    Drawable dr = getDrawable(R.drawable.check);
+                    Bitmap bitmap = ((BitmapDrawable) dr).getBitmap();
+                    d = new BitmapDrawable(getResources(), Bitmap.createScaledBitmap(bitmap, 80, 80, true));
+                } else {
+                    Drawable dr = getDrawable(R.drawable.cancel);
+                    Bitmap bitmap = ((BitmapDrawable) dr).getBitmap();
+                    d = new BitmapDrawable(getResources(), Bitmap.createScaledBitmap(bitmap, 80, 80, true));
+                }
+                estado = !estado;
+                disponible.setImageDrawable(d);
+                dbRefLocation = database.getReference("status/"+mAuth.getUid());
+                dbRefLocation.setValue(estado);
             }
         });
 
@@ -120,6 +162,19 @@ public class MainMapActivity extends FragmentActivity implements OnMapReadyCallb
         };
         Util.requestPermission(this, Manifest.permission.ACCESS_FINE_LOCATION, "", LOCATION_CODE);
 
+        dbRefLocation = database.getReference("status");
+        dbRefLocation.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                Toast.makeText(MainMapActivity.this,"Cambio",Toast.LENGTH_SHORT).show();
+                Log.i("RTDB",dataSnapshot.toString());
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+                Log.w("RTDB", "error en la consulta", databaseError.toException());
+            }
+        });
 
 
 
@@ -219,7 +274,10 @@ public class MainMapActivity extends FragmentActivity implements OnMapReadyCallb
                 task.addOnSuccessListener(this, new OnSuccessListener<LocationSettingsResponse>() {
                     @Override
                     public void onSuccess(LocationSettingsResponse locationSettingsResponse) {
-                        startLocationUpdates();
+                        if (contadorSub == 0) {
+                            startLocationUpdates();
+                            contadorSub++;
+                        }
                     }
                 });
 

@@ -76,19 +76,19 @@
                 fab:fab_size="mini"
                 fab:fab_label="Cambiar Estado" />
             <com.github.clans.fab.FloatingActionButton
-                android:id="@+id/logout"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:src="@drawable/menu"
-                fab:fab_size="mini"
-                fab:fab_label="Cerrar Sesion" />
-            <com.github.clans.fab.FloatingActionButton
                 android:id="@+id/lista"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:src="@drawable/menu"
                 fab:fab_size="mini"
                 fab:fab_label="Lista" />
+            <com.github.clans.fab.FloatingActionButton
+                android:id="@+id/logout"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/menu"
+                fab:fab_size="mini"
+                fab:fab_label="Cerrar Sesion" />
 
 
         </com.github.clans.fab.FloatingActionMenu>
