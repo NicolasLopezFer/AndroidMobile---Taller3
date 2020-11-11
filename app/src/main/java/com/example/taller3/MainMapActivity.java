@@ -2,10 +2,16 @@ package com.example.taller3;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.app.NotificationCompat;
+import androidx.core.app.NotificationManagerCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.FragmentActivity;
 
 import android.Manifest;
+import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.content.Intent;
 import android.content.IntentSender;
 import android.content.pm.PackageManager;
@@ -13,6 +19,7 @@ import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.location.Location;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Looper;
 import android.util.Log;
@@ -61,6 +68,9 @@ import java.io.InputStream;
 import java.util.ArrayList;
 
 public class MainMapActivity extends FragmentActivity implements OnMapReadyCallback {
+
+    private static final String CHANNEL_ID = "MiApp";
+    private int notificationId=66;
 
     private GoogleMap mMap;
     private ArrayList<Ubicacion> ubicacions;
@@ -117,6 +127,7 @@ public class MainMapActivity extends FragmentActivity implements OnMapReadyCallb
         dbRefLocation = database.getReference("status/" + mAuth.getUid());
 
         setImageEstado();
+        createNotificationChannel();
 
 
         lista.setOnClickListener(new View.OnClickListener() {
@@ -163,6 +174,20 @@ public class MainMapActivity extends FragmentActivity implements OnMapReadyCallb
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 Log.i("RTDB", dataSnapshot.toString());
                 //TODO: REVISAR SI ES OTRA PERSONA Y ENVIAR NOTIFICACION
+                NotificationCompat.Builder builder = new NotificationCompat.Builder(MainMapActivity.this,CHANNEL_ID);
+                builder.setSmallIcon(R.drawable.bell);
+                builder.setContentTitle("Cambio de estado");
+                builder.setContentText("Un usuario cambio de estado");
+                builder.setPriority(NotificationCompat.PRIORITY_DEFAULT);
+
+                Intent intent = new Intent(MainMapActivity.this,UserDistanceMapActivity.class);
+                intent.putExtra("uid",dataSnapshot.getValue().toString());
+                PendingIntent pendingIntent = PendingIntent.getActivity(MainMapActivity.this,0,intent,0);
+                builder.setContentIntent(pendingIntent);
+                builder.setAutoCancel(true);
+
+                NotificationManagerCompat notificationManagerCompat = NotificationManagerCompat.from(MainMapActivity.this);
+                notificationManagerCompat.notify(notificationId,builder.build());
             }
 
             @Override
@@ -371,6 +396,21 @@ public class MainMapActivity extends FragmentActivity implements OnMapReadyCallb
                 return;
             }
 
+        }
+    }
+
+
+    private void createNotificationChannel(){
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O){
+            CharSequence name = "CanalNotificaciones";
+            String descripcion = "Cambio en Firebase";
+            int importance = NotificationManager.IMPORTANCE_DEFAULT;
+            NotificationChannel channel = new NotificationChannel(CHANNEL_ID,name,importance);
+
+            channel.setDescription(descripcion);
+
+            NotificationManager notificationManager = getSystemService(NotificationManager.class);
+            notificationManager.createNotificationChannel(channel);
         }
     }
 }
