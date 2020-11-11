@@ -2,14 +2,24 @@ package com.example.taller3;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.app.NotificationCompat;
+import androidx.core.app.NotificationManagerCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.FragmentActivity;
 
 import android.Manifest;
+import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.content.Intent;
 import android.content.IntentSender;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
 import android.location.Location;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Looper;
 import android.util.Log;
@@ -41,6 +51,12 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 
 import org.json.JSONArray;
@@ -53,6 +69,9 @@ import java.util.ArrayList;
 
 public class MainMapActivity extends FragmentActivity implements OnMapReadyCallback {
 
+    private static final String CHANNEL_ID = "MiApp";
+    private int notificationId=66;
+
     private GoogleMap mMap;
     private ArrayList<Ubicacion> ubicacions;
 
@@ -63,11 +82,20 @@ public class MainMapActivity extends FragmentActivity implements OnMapReadyCallb
     private static final int REQUEST_CHECK_SETTINGS = 12;
     private Marker locationMarker;
     private int contador = 0;
+    private int contadorSub = 0;
     private FrameLayout frameLayout;
 
     private FloatingActionButton disponible;
     private FloatingActionButton logout;
     private FloatingActionButton lista;
+
+    private FirebaseAuth mAuth;
+    private FirebaseDatabase database;
+    private DatabaseReference dbRefStatus;
+    private DatabaseReference dbRefLocation;
+    private LatLng posicionActual=null;
+
+    private Boolean estado = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -78,17 +106,52 @@ public class MainMapActivity extends FragmentActivity implements OnMapReadyCallb
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
 
+        mAuth = FirebaseAuth.getInstance();
 
+        database = FirebaseDatabase.getInstance();
 
         disponible = findViewById(R.id.disponible);
         logout = findViewById(R.id.logout);
         lista = findViewById(R.id.lista);
 
+        Drawable dr = getDrawable(R.drawable.logout);
+        Bitmap bitmap = ((BitmapDrawable) dr).getBitmap();
+        Drawable d = new BitmapDrawable(getResources(), Bitmap.createScaledBitmap(bitmap, 80, 80, true));
+        logout.setImageDrawable(d);
+
+        Drawable drL = getDrawable(R.drawable.list);
+        Bitmap bitmapL = ((BitmapDrawable) drL).getBitmap();
+        Drawable dL = new BitmapDrawable(getResources(), Bitmap.createScaledBitmap(bitmapL, 80, 80, true));
+        lista.setImageDrawable(dL);
+
+        dbRefLocation = database.getReference("status/" + mAuth.getUid());
+
+        setImageEstado();
+        createNotificationChannel();
+
+
         lista.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(MainMapActivity.this,ActiveUsersActivity.class);
+                Intent intent = new Intent(MainMapActivity.this, ActiveUsersActivity.class);
                 startActivity(intent);
+            }
+        });
+
+        logout.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(MainMapActivity.this, MainActivity.class);
+                mAuth.signOut();
+                intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                startActivity(intent);
+            }
+        });
+
+        disponible.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                setImageEstado();
             }
         });
 
@@ -98,7 +161,6 @@ public class MainMapActivity extends FragmentActivity implements OnMapReadyCallb
             @Override
             public void onLocationResult(LocationResult locationResult) {
                 Location location = locationResult.getLastLocation();
-                //Log.i("LOCATION", "Location update in the callback:" + location);
                 if (location != null) {
                     updateLocation();
                 }
@@ -106,9 +168,53 @@ public class MainMapActivity extends FragmentActivity implements OnMapReadyCallb
         };
         Util.requestPermission(this, Manifest.permission.ACCESS_FINE_LOCATION, "", LOCATION_CODE);
 
+        dbRefLocation = database.getReference("status");
+        dbRefLocation.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                Log.i("RTDB", dataSnapshot.toString());
+                //TODO: REVISAR SI ES OTRA PERSONA Y ENVIAR NOTIFICACION
+                NotificationCompat.Builder builder = new NotificationCompat.Builder(MainMapActivity.this,CHANNEL_ID);
+                builder.setSmallIcon(R.drawable.bell);
+                builder.setContentTitle("Cambio de estado");
+                builder.setContentText("Un usuario cambio de estado");
+                builder.setPriority(NotificationCompat.PRIORITY_DEFAULT);
+
+                Intent intent = new Intent(MainMapActivity.this,UserDistanceMapActivity.class);
+                intent.putExtra("uid",dataSnapshot.getValue().toString());
+                PendingIntent pendingIntent = PendingIntent.getActivity(MainMapActivity.this,0,intent,0);
+                builder.setContentIntent(pendingIntent);
+                builder.setAutoCancel(true);
+
+                NotificationManagerCompat notificationManagerCompat = NotificationManagerCompat.from(MainMapActivity.this);
+                notificationManagerCompat.notify(notificationId,builder.build());
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+                Log.w("RTDB", "error en la consulta", databaseError.toException());
+            }
+        });
 
 
+    }
 
+    private void setImageEstado(){
+        estado = !estado;
+        Drawable d;
+        if (estado) {
+            Drawable dr = getDrawable(R.drawable.check);
+            Bitmap bitmap = ((BitmapDrawable) dr).getBitmap();
+            d = new BitmapDrawable(getResources(), Bitmap.createScaledBitmap(bitmap, 80, 80, true));
+        } else {
+            Drawable dr = getDrawable(R.drawable.cancel);
+            Bitmap bitmap = ((BitmapDrawable) dr).getBitmap();
+            d = new BitmapDrawable(getResources(), Bitmap.createScaledBitmap(bitmap, 80, 80, true));
+        }
+
+        disponible.setImageDrawable(d);
+        dbRefLocation = database.getReference("status/" + mAuth.getUid());
+        dbRefLocation.setValue(estado);
     }
 
     @Override
@@ -205,7 +311,10 @@ public class MainMapActivity extends FragmentActivity implements OnMapReadyCallb
                 task.addOnSuccessListener(this, new OnSuccessListener<LocationSettingsResponse>() {
                     @Override
                     public void onSuccess(LocationSettingsResponse locationSettingsResponse) {
-                        startLocationUpdates();
+                        if (contadorSub == 0) {
+                            startLocationUpdates();
+                            contadorSub++;
+                        }
                     }
                 });
 
@@ -248,10 +357,18 @@ public class MainMapActivity extends FragmentActivity implements OnMapReadyCallb
     }
 
     private void placeMarker(Location location) {
+        LatLng myLocation = new LatLng(location.getLatitude(), location.getLongitude());
         if (locationMarker != null) {
             locationMarker.remove();
+        }else{
+            posicionActual = myLocation;
         }
-        LatLng myLocation = new LatLng(location.getLatitude(), location.getLongitude());
+
+        if(myLocation != posicionActual){
+            dbRefLocation = database.getReference("location/"+mAuth.getUid());
+            dbRefLocation.setValue(myLocation);
+            posicionActual = myLocation;
+        }
         locationMarker = mMap.addMarker(new MarkerOptions().position(myLocation).title("Tú"));
         if (contador == 0) {
             mMap.moveCamera(CameraUpdateFactory.newLatLng(myLocation));
@@ -279,6 +396,21 @@ public class MainMapActivity extends FragmentActivity implements OnMapReadyCallb
                 return;
             }
 
+        }
+    }
+
+
+    private void createNotificationChannel(){
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O){
+            CharSequence name = "CanalNotificaciones";
+            String descripcion = "Cambio en Firebase";
+            int importance = NotificationManager.IMPORTANCE_DEFAULT;
+            NotificationChannel channel = new NotificationChannel(CHANNEL_ID,name,importance);
+
+            channel.setDescription(descripcion);
+
+            NotificationManager notificationManager = getSystemService(NotificationManager.class);
+            notificationManager.createNotificationChannel(channel);
         }
     }
 }
