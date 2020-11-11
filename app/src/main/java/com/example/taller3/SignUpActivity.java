@@ -259,6 +259,7 @@ public class SignUpActivity extends AppCompatActivity {
         switch (requestCode) {
             case REQUEST_CHECK_SETTINGS: {
                 if (resultCode == RESULT_OK) {
+                    Log.i("AA","AAAAAAAA");
                     startLocationUpdates();
                 } else {
                     Toast.makeText(this, "Sin acceso a la localizacion, hardware deshabilidato!", Toast.LENGTH_SHORT).show();
