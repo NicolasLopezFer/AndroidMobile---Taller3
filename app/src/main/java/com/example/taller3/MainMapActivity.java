@@ -81,8 +81,9 @@ public class MainMapActivity extends FragmentActivity implements OnMapReadyCallb
 
     private FirebaseAuth mAuth;
     private FirebaseDatabase database;
+    private DatabaseReference dbRefStatus;
     private DatabaseReference dbRefLocation;
-
+    private LatLng posicionActual=null;
 
     private Boolean estado = false;
 
@@ -108,6 +109,15 @@ public class MainMapActivity extends FragmentActivity implements OnMapReadyCallb
         Drawable d = new BitmapDrawable(getResources(), Bitmap.createScaledBitmap(bitmap, 80, 80, true));
         logout.setImageDrawable(d);
 
+        Drawable drL = getDrawable(R.drawable.list);
+        Bitmap bitmapL = ((BitmapDrawable) drL).getBitmap();
+        Drawable dL = new BitmapDrawable(getResources(), Bitmap.createScaledBitmap(bitmapL, 80, 80, true));
+        lista.setImageDrawable(dL);
+
+        dbRefLocation = database.getReference("status/" + mAuth.getUid());
+
+        setImageEstado();
+
 
         lista.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -130,21 +140,7 @@ public class MainMapActivity extends FragmentActivity implements OnMapReadyCallb
         disponible.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-
-                Drawable d;
-                if (estado) {
-                    Drawable dr = getDrawable(R.drawable.check);
-                    Bitmap bitmap = ((BitmapDrawable) dr).getBitmap();
-                    d = new BitmapDrawable(getResources(), Bitmap.createScaledBitmap(bitmap, 80, 80, true));
-                } else {
-                    Drawable dr = getDrawable(R.drawable.cancel);
-                    Bitmap bitmap = ((BitmapDrawable) dr).getBitmap();
-                    d = new BitmapDrawable(getResources(), Bitmap.createScaledBitmap(bitmap, 80, 80, true));
-                }
-                estado = !estado;
-                disponible.setImageDrawable(d);
-                dbRefLocation = database.getReference("status/"+mAuth.getUid());
-                dbRefLocation.setValue(estado);
+                setImageEstado();
             }
         });
 
@@ -154,7 +150,6 @@ public class MainMapActivity extends FragmentActivity implements OnMapReadyCallb
             @Override
             public void onLocationResult(LocationResult locationResult) {
                 Location location = locationResult.getLastLocation();
-                //Log.i("LOCATION", "Location update in the callback:" + location);
                 if (location != null) {
                     updateLocation();
                 }
@@ -166,8 +161,8 @@ public class MainMapActivity extends FragmentActivity implements OnMapReadyCallb
         dbRefLocation.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                Toast.makeText(MainMapActivity.this,"Cambio",Toast.LENGTH_SHORT).show();
-                Log.i("RTDB",dataSnapshot.toString());
+                Log.i("RTDB", dataSnapshot.toString());
+                //TODO: REVISAR SI ES OTRA PERSONA Y ENVIAR NOTIFICACION
             }
 
             @Override
@@ -177,7 +172,24 @@ public class MainMapActivity extends FragmentActivity implements OnMapReadyCallb
         });
 
 
+    }
 
+    private void setImageEstado(){
+        estado = !estado;
+        Drawable d;
+        if (estado) {
+            Drawable dr = getDrawable(R.drawable.check);
+            Bitmap bitmap = ((BitmapDrawable) dr).getBitmap();
+            d = new BitmapDrawable(getResources(), Bitmap.createScaledBitmap(bitmap, 80, 80, true));
+        } else {
+            Drawable dr = getDrawable(R.drawable.cancel);
+            Bitmap bitmap = ((BitmapDrawable) dr).getBitmap();
+            d = new BitmapDrawable(getResources(), Bitmap.createScaledBitmap(bitmap, 80, 80, true));
+        }
+
+        disponible.setImageDrawable(d);
+        dbRefLocation = database.getReference("status/" + mAuth.getUid());
+        dbRefLocation.setValue(estado);
     }
 
     @Override
@@ -320,10 +332,18 @@ public class MainMapActivity extends FragmentActivity implements OnMapReadyCallb
     }
 
     private void placeMarker(Location location) {
+        LatLng myLocation = new LatLng(location.getLatitude(), location.getLongitude());
         if (locationMarker != null) {
             locationMarker.remove();
+        }else{
+            posicionActual = myLocation;
         }
-        LatLng myLocation = new LatLng(location.getLatitude(), location.getLongitude());
+
+        if(myLocation != posicionActual){
+            dbRefLocation = database.getReference("location/"+mAuth.getUid());
+            dbRefLocation.setValue(myLocation);
+            posicionActual = myLocation;
+        }
         locationMarker = mMap.addMarker(new MarkerOptions().position(myLocation).title("Tú"));
         if (contador == 0) {
             mMap.moveCamera(CameraUpdateFactory.newLatLng(myLocation));
