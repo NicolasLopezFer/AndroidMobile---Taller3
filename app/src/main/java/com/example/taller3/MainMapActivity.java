@@ -64,6 +64,9 @@ import org.json.JSONObject;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class MainMapActivity extends FragmentActivity implements OnMapReadyCallback {
 
@@ -80,7 +83,7 @@ public class MainMapActivity extends FragmentActivity implements OnMapReadyCallb
     private static final int REQUEST_CHECK_SETTINGS = 12;
     private Marker locationMarker;
     private int contador = 0;
-    private int contadorSub = 0;
+    private int contadorAux = 0;
     private FrameLayout frameLayout;
 
     private FloatingActionButton disponible;
@@ -94,6 +97,8 @@ public class MainMapActivity extends FragmentActivity implements OnMapReadyCallb
     private LatLng posicionActual = null;
 
     private Boolean estado = false;
+    Map<String, Boolean> old = new HashMap<>();
+    private List<String> values = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -170,28 +175,57 @@ public class MainMapActivity extends FragmentActivity implements OnMapReadyCallb
         dbReference.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                Log.i("RTDB", dataSnapshot.toString());
-                //TODO: REVISAR SI ES OTRA PERSONA Y ENVIAR NOTIFICACION
-                NotificationCompat.Builder builder = new NotificationCompat.Builder(MainMapActivity.this, CHANNEL_ID);
-                builder.setSmallIcon(R.drawable.bell);
-                builder.setContentTitle("Cambio de estado");
-                builder.setContentText("Un usuario cambio de estado");
-                builder.setPriority(NotificationCompat.PRIORITY_DEFAULT);
+                Map<String, Boolean> nuevo = new HashMap<>();
+                for (DataSnapshot ds : dataSnapshot.getChildren()) {
+                    String uid = ds.getKey();
+                    Boolean state = Boolean.parseBoolean(ds.getValue().toString());
+                    Log.i("RTDB", ds.getValue().toString());
+                    nuevo.put(uid, state);
 
-                Intent intent = new Intent(MainMapActivity.this, UserDistanceMapActivity.class);
-                intent.putExtra("uid", dataSnapshot.getValue().toString());
-                PendingIntent pendingIntent = PendingIntent.getActivity(MainMapActivity.this, 0, intent, 0);
-                builder.setContentIntent(pendingIntent);
-                builder.setAutoCancel(true);
+                    if (!values.contains(uid)) {
+                        values.add(uid);
+                    }
+                }
+                if (contadorAux == 0){
+                    old = nuevo;
+                    contadorAux++;
+                }
+                String changed = "";
+                for (String val : values) {
+                    //Log.i("RTDB", val+":"+nuevo.get(val).toString()+"-->"+old.get(val).toString()+"/"+String.valueOf(contadorAux));
+                    if (nuevo.get(val) != old.get(val)) {
+                        changed = val;
+                    }
+                }
 
-                NotificationManagerCompat notificationManagerCompat = NotificationManagerCompat.from(MainMapActivity.this);
-                notificationManagerCompat.notify(notificationId, builder.build());
+                old = nuevo;
+
+                if (!changed.equals(mAuth.getUid())&&contadorAux>0 && nuevo.get(changed)) {
+                    //TODO: REVISAR SI ES OTRA PERSONA Y ENVIAR NOTIFICACION
+
+
+                    NotificationCompat.Builder builder = new NotificationCompat.Builder(MainMapActivity.this, CHANNEL_ID);
+                    builder.setSmallIcon(R.drawable.bell);
+                    builder.setContentTitle("Cambio de estado");
+                    builder.setContentText("Un usuario cambio de estado");
+                    builder.setPriority(NotificationCompat.PRIORITY_DEFAULT);
+
+                    Intent intent = new Intent(MainMapActivity.this, UserDistanceMapActivity.class);
+                    intent.putExtra("uid", dataSnapshot.getValue().toString());
+                    PendingIntent pendingIntent = PendingIntent.getActivity(MainMapActivity.this, 0, intent, 0);
+                    builder.setContentIntent(pendingIntent);
+                    builder.setAutoCancel(true);
+
+                    NotificationManagerCompat notificationManagerCompat = NotificationManagerCompat.from(MainMapActivity.this);
+                    notificationManagerCompat.notify(notificationId, builder.build());
+                }
             }
 
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
                 Log.w("RTDB", "error en la consulta", databaseError.toException());
             }
+
         });
 
 
