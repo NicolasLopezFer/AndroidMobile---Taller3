@@ -10,7 +10,6 @@ import androidx.fragment.app.FragmentActivity;
 
 import android.Manifest;
 import android.app.Activity;
-import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
@@ -27,12 +26,10 @@ import android.os.Looper;
 import android.util.Log;
 import android.view.View;
 import android.widget.FrameLayout;
-import android.widget.ImageView;
 import android.widget.Toast;
 
 import com.github.clans.fab.FloatingActionButton;
 import com.google.android.gms.common.api.ApiException;
-import com.google.android.gms.common.api.CommonStatusCodes;
 import com.google.android.gms.common.api.ResolvableApiException;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationCallback;
@@ -42,7 +39,6 @@ import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.location.LocationSettingsRequest;
 import com.google.android.gms.location.LocationSettingsResponse;
 import com.google.android.gms.location.LocationSettingsStatusCodes;
-import com.google.android.gms.location.SettingsClient;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -51,7 +47,6 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
@@ -94,8 +89,8 @@ public class MainMapActivity extends FragmentActivity implements OnMapReadyCallb
 
     private FirebaseAuth mAuth;
     private FirebaseDatabase database;
-    private DatabaseReference dbRefStatus;
-    private DatabaseReference dbRefLocation;
+
+    private DatabaseReference dbReference;
     private LatLng posicionActual = null;
 
     private Boolean estado = false;
@@ -127,7 +122,7 @@ public class MainMapActivity extends FragmentActivity implements OnMapReadyCallb
         Drawable dL = new BitmapDrawable(getResources(), Bitmap.createScaledBitmap(bitmapL, 80, 80, true));
         lista.setImageDrawable(dL);
 
-        dbRefLocation = database.getReference("status/" + mAuth.getUid());
+        dbReference = database.getReference("status/" + mAuth.getUid());
 
         setImageEstado();
         createNotificationChannel();
@@ -171,8 +166,8 @@ public class MainMapActivity extends FragmentActivity implements OnMapReadyCallb
         };
         Util.requestPermission(this, Manifest.permission.ACCESS_FINE_LOCATION, "", LOCATION_CODE);
 
-        dbRefLocation = database.getReference("status");
-        dbRefLocation.addValueEventListener(new ValueEventListener() {
+        dbReference = database.getReference("status");
+        dbReference.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 Log.i("RTDB", dataSnapshot.toString());
@@ -216,8 +211,8 @@ public class MainMapActivity extends FragmentActivity implements OnMapReadyCallb
         }
 
         disponible.setImageDrawable(d);
-        dbRefLocation = database.getReference("status/" + mAuth.getUid());
-        dbRefLocation.setValue(estado);
+        dbReference = database.getReference("status/" + mAuth.getUid());
+        dbReference.setValue(estado);
     }
 
     @Override
@@ -325,7 +320,7 @@ public class MainMapActivity extends FragmentActivity implements OnMapReadyCallb
 
                             if (ActivityCompat.checkSelfPermission(MainMapActivity.this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(MainMapActivity.this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
 
-                                Log.i("LOCATION", "location.toString()");
+
                                 fusedLocationProviderClient.getLastLocation().addOnSuccessListener(MainMapActivity.this, new OnSuccessListener<Location>() {
                                     @Override
                                     public void onSuccess(Location location) {
@@ -378,8 +373,8 @@ public class MainMapActivity extends FragmentActivity implements OnMapReadyCallb
         }
 
         if (myLocation != posicionActual) {
-            dbRefLocation = database.getReference("location/" + mAuth.getUid());
-            dbRefLocation.setValue(myLocation);
+            dbReference = database.getReference("location/" + mAuth.getUid());
+            dbReference.setValue(myLocation);
             posicionActual = myLocation;
         }
         locationMarker = mMap.addMarker(new MarkerOptions().position(myLocation).title("Tú"));

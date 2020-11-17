@@ -29,6 +29,7 @@ import android.widget.Toast;
 import com.basgeekball.awesomevalidation.AwesomeValidation;
 import com.basgeekball.awesomevalidation.ValidationStyle;
 import com.basgeekball.awesomevalidation.utility.RegexTemplate;
+import com.example.taller3.Model.User;
 import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.common.api.CommonStatusCodes;
 import com.google.android.gms.common.api.ResolvableApiException;
@@ -49,6 +50,8 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.storage.FileDownloadTask;
 import com.google.firebase.storage.StorageReference;
 
@@ -78,12 +81,15 @@ public class SignUpActivity extends AppCompatActivity {
     private LocationCallback locationCallback;
 
     private StorageReference mStorageRef;
+    private DatabaseReference dbReference;
+    private FirebaseDatabase database;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_sign_up);
         mAuth = FirebaseAuth.getInstance();
+        database = FirebaseDatabase.getInstance();
         user = null;
 
         imagen = findViewById(R.id.ivImagenRegistro);
@@ -229,7 +235,14 @@ public class SignUpActivity extends AppCompatActivity {
                     @Override
                     public void onComplete(@NonNull Task<AuthResult> task) {
                         if (task.isSuccessful()) {
+                            String uid = mAuth.getUid();
+                            String nombre = SignUpActivity.this.nombre.getText().toString();
+                            String apellido = SignUpActivity.this.apellido.getText().toString();
 
+                            User usuario = new User(uid,nombre,apellido,"1234");
+
+                            dbReference = database.getReference("users/"+uid);
+                            dbReference.setValue(usuario);
 
                             Toast.makeText(getApplicationContext(), "Cuenta creada correctamente",
                                     Toast.LENGTH_SHORT).show();
