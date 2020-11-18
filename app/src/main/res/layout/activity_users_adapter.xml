@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="20dp">
+
+    <ImageView
+        android:id="@+id/imageViewUsuarioAdapter"
+        android:layout_width="0dp"
+        android:layout_height="50dp"
+        android:layout_weight="0.3"
+        app:srcCompat="@drawable/check"
+        />
+
+    <TextView
+        android:id="@+id/textViewUsuarioAdapter"
+        android:layout_width="0dp"
+        android:layout_height="50dp"
+        android:layout_weight="0.3"
+        android:text="Nombre Usuario"
+        android:gravity="center"/>
+
+    <Button
+        android:id="@+id/buttonUsuarioAdapter"
+        android:layout_width="0dp"
+        android:layout_height="50dp"
+        android:layout_weight="0.4"
+        android:text="Ver ubicacion" />
+</LinearLayout>
