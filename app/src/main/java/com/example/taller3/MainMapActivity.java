@@ -28,6 +28,7 @@ import android.view.View;
 import android.widget.FrameLayout;
 import android.widget.Toast;
 
+import com.example.taller3.Model.Usuario;
 import com.github.clans.fab.FloatingActionButton;
 import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.common.api.ResolvableApiException;
@@ -43,6 +44,7 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
@@ -99,6 +101,7 @@ public class MainMapActivity extends FragmentActivity implements OnMapReadyCallb
     private Boolean estado = false;
     Map<String, Boolean> old = new HashMap<>();
     private List<String> values = new ArrayList<>();
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -179,7 +182,6 @@ public class MainMapActivity extends FragmentActivity implements OnMapReadyCallb
                 for (DataSnapshot ds : dataSnapshot.getChildren()) {
                     String uid = ds.getKey();
                     Boolean state = Boolean.parseBoolean(ds.getValue().toString());
-                    Log.i("RTDB", ds.getValue().toString());
                     nuevo.put(uid, state);
 
                     if (!values.contains(uid)) {
@@ -192,32 +194,35 @@ public class MainMapActivity extends FragmentActivity implements OnMapReadyCallb
                 }
                 String changed = "";
                 for (String val : values) {
-                    //Log.i("RTDB", val+":"+nuevo.get(val).toString()+"-->"+old.get(val).toString()+"/"+String.valueOf(contadorAux));
+
                     if (nuevo.get(val) != old.get(val)) {
                         changed = val;
                     }
                 }
 
                 old = nuevo;
+
                 if (!changed.equals("")) {
                     if (!changed.equals(mAuth.getUid()) && contadorAux > 0 && nuevo.get(changed)) {
                         //TODO: REVISAR SI ES OTRA PERSONA Y ENVIAR NOTIFICACION
 
+                        dbReference = database.getReference("users/"+changed);
+                        String finalChanged = changed;
 
-                        NotificationCompat.Builder builder = new NotificationCompat.Builder(MainMapActivity.this, CHANNEL_ID);
-                        builder.setSmallIcon(R.drawable.bell);
-                        builder.setContentTitle("Cambio de estado");
-                        builder.setContentText("Un usuario cambio de estado");
-                        builder.setPriority(NotificationCompat.PRIORITY_DEFAULT);
+                        dbReference.addValueEventListener(new ValueEventListener() {
+                            @Override
+                            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                                Usuario usuarioNotificacion = dataSnapshot.getValue(Usuario.class);
+                                crearNotificacion(usuarioNotificacion.getNombre(), finalChanged);
+                            }
 
-                        Intent intent = new Intent(MainMapActivity.this, UserDistanceMapActivity.class);
-                        intent.putExtra("uid", dataSnapshot.getValue().toString());
-                        PendingIntent pendingIntent = PendingIntent.getActivity(MainMapActivity.this, 0, intent, 0);
-                        builder.setContentIntent(pendingIntent);
-                        builder.setAutoCancel(true);
+                            @Override
+                            public void onCancelled(@NonNull DatabaseError databaseError) {
 
-                        NotificationManagerCompat notificationManagerCompat = NotificationManagerCompat.from(MainMapActivity.this);
-                        notificationManagerCompat.notify(notificationId, builder.build());
+                            }
+                        });
+
+
                     }
                 }
             }
@@ -230,6 +235,24 @@ public class MainMapActivity extends FragmentActivity implements OnMapReadyCallb
         });
 
 
+    }
+
+    private void crearNotificacion(String nombre,String uid){
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(MainMapActivity.this, CHANNEL_ID);
+        builder.setSmallIcon(R.drawable.bell);
+        builder.setContentTitle("Cambio de estado");
+        builder.setContentText(nombre+" Ahora esta Activo!");
+        builder.setPriority(NotificationCompat.PRIORITY_DEFAULT);
+
+        Intent intent = new Intent(MainMapActivity.this, UserDistanceMapActivity.class);
+        intent.putExtra("uid", uid);
+        intent.putExtra("nombre", nombre);
+        PendingIntent pendingIntent = PendingIntent.getActivity(MainMapActivity.this, 0, intent, 0);
+        builder.setContentIntent(pendingIntent);
+        builder.setAutoCancel(true);
+
+        NotificationManagerCompat notificationManagerCompat = NotificationManagerCompat.from(MainMapActivity.this);
+        notificationManagerCompat.notify(notificationId, builder.build());
     }
 
     private void setImageEstado() {
@@ -422,7 +445,7 @@ public class MainMapActivity extends FragmentActivity implements OnMapReadyCallb
             dbReference.setValue(myLocation);
             posicionActual = myLocation;
         }
-        locationMarker = mMap.addMarker(new MarkerOptions().position(myLocation).title("Tú"));
+        locationMarker = mMap.addMarker(new MarkerOptions().position(myLocation).title("Tú").icon(BitmapDescriptorFactory.fromResource(R.drawable.googlemaps)));
         if (contador == 0) {
             mMap.moveCamera(CameraUpdateFactory.newLatLng(myLocation));
             mMap.moveCamera(CameraUpdateFactory.zoomTo(15));

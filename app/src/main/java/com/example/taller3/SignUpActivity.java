@@ -113,7 +113,7 @@ public class SignUpActivity extends AppCompatActivity {
         validator.addValidation(this, R.id.etContraRegistro, RegexTemplate.NOT_EMPTY, R.string.errorValidacion);
         validator.addValidation(this, R.id.tvLatitudRegistro, RegexTemplate.NOT_EMPTY, R.string.errorValidacion);
         validator.addValidation(this, R.id.tvLongitudRegistro, RegexTemplate.NOT_EMPTY, R.string.errorValidacion);
-        validator.addValidation(this, R.id.etIdentificacionRegistro, RegexTemplate.NOT_EMPTY,R.string.errorValidacion);
+        validator.addValidation(this, R.id.etIdentificacionRegistro, RegexTemplate.NOT_EMPTY, R.string.errorValidacion);
 
         btnRegistrar.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -131,7 +131,6 @@ public class SignUpActivity extends AppCompatActivity {
                 requestPermission(SignUpActivity.this, Manifest.permission.READ_EXTERNAL_STORAGE, "El permiso es para poner una foto de perfil", IMAGE_PICKER_PERMISSION);
             }
         });
-
 
 
         btnCoordenadas.setOnClickListener(new View.OnClickListener() {
@@ -157,7 +156,6 @@ public class SignUpActivity extends AppCompatActivity {
             LocationRequest locationRequest = LocationRequest.create();
             locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
             LocationSettingsRequest.Builder builder = new LocationSettingsRequest.Builder().addLocationRequest(locationRequest);
-
 
 
             Task<LocationSettingsResponse> result = LocationServices.getSettingsClient(SignUpActivity.this).checkLocationSettings(builder.build());
@@ -231,47 +229,53 @@ public class SignUpActivity extends AppCompatActivity {
     }
 
     public void intentarRegistro() {
-        mAuth.createUserWithEmailAndPassword(email.getText().toString(), contra.getText().toString())
-                .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
-                    @Override
-                    public void onComplete(@NonNull Task<AuthResult> task) {
-                        if (task.isSuccessful()) {
-                            String uid = mAuth.getUid();
-                            String nombre = SignUpActivity.this.nombre.getText().toString();
-                            String apellido = SignUpActivity.this.apellido.getText().toString();
-                            String identificacion = SignUpActivity.this.identificacion.getText().toString();
-                            //TODO: Cedula
-                            Usuario usuario = new Usuario(uid,nombre,apellido,identificacion);
+        if (imageUri != null) {
+            mAuth.createUserWithEmailAndPassword(email.getText().toString(), contra.getText().toString())
+                    .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
+                        @Override
+                        public void onComplete(@NonNull Task<AuthResult> task) {
+                            if (task.isSuccessful()) {
+                                String uid = mAuth.getUid();
+                                String nombre = SignUpActivity.this.nombre.getText().toString();
+                                String apellido = SignUpActivity.this.apellido.getText().toString();
+                                String identificacion = SignUpActivity.this.identificacion.getText().toString();
 
-                            dbReference = database.getReference("users/"+uid);
-                            dbReference.setValue(usuario);
+                                Usuario usuario = new Usuario(uid, nombre, apellido, identificacion);
 
-                            Toast.makeText(getApplicationContext(), "Cuenta creada correctamente",
-                                    Toast.LENGTH_SHORT).show();
-                            user = mAuth.getCurrentUser();
+                                dbReference = database.getReference("users/" + uid);
+                                dbReference.setValue(usuario);
 
-                            mStorageRef = storage.getReference("profile/"+uid+"/profilePic.jpg");
-
-                            mStorageRef.putFile(imageUri).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
-                                @Override
-                                public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
-                                    Log.i("STORAGE","IMAGEN GUARDAD");
-                                }
-                            }).addOnFailureListener(new OnFailureListener() {
-                                @Override
-                                public void onFailure(@NonNull Exception e) {
-                                    Log.i("STORAGE","IMAGEN NO GUARDAD");
-                                }
-                            });
+                                Toast.makeText(getApplicationContext(), "Cuenta creada correctamente",
+                                        Toast.LENGTH_SHORT).show();
+                                user = mAuth.getCurrentUser();
 
 
-                            pasarNuevaActividad();
-                        } else {
-                            Toast.makeText(getApplicationContext(), "No se pudo crear la cuenta",
-                                    Toast.LENGTH_SHORT).show();
+                                mStorageRef = storage.getReference("profile/" + uid + "/profilePic.jpg");
+
+                                mStorageRef.putFile(imageUri).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+                                    @Override
+                                    public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                                        Log.i("STORAGE", "IMAGEN GUARDAD");
+                                    }
+                                }).addOnFailureListener(new OnFailureListener() {
+                                    @Override
+                                    public void onFailure(@NonNull Exception e) {
+                                        Log.i("STORAGE", "IMAGEN NO GUARDAD");
+                                    }
+                                });
+
+
+                                pasarNuevaActividad();
+
+                            } else {
+                                Toast.makeText(getApplicationContext(), "No se pudo crear la cuenta",
+                                        Toast.LENGTH_SHORT).show();
+                            }
                         }
-                    }
-                });
+                    });
+        } else {
+            Toast.makeText(SignUpActivity.this, "Por favor ingrese una foto de perfil", Toast.LENGTH_SHORT).show();
+        }
     }
 
     public void pasarNuevaActividad() {
@@ -316,7 +320,7 @@ public class SignUpActivity extends AppCompatActivity {
                 return;
             }
             case IMAGE_PICKER_REQUEST:
-                if(resultCode == RESULT_OK){
+                if (resultCode == RESULT_OK) {
                     imageUri = data.getData();
                 }
                 break;

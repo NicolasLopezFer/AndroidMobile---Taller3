@@ -13,9 +13,12 @@ public class Usuario {
     public Usuario(){}
 
 
-    public Usuario(String uid, String email, String apellido, String identificacion) {
+    public Usuario() {
+    }
+
+    public Usuario(String uid, String nombre, String apellido, String identificacion) {
         this.uid = uid;
-        this.nombre = email;
+        this.nombre = nombre;
         this.apellido = apellido;
         this.identificacion = identificacion;
     }
