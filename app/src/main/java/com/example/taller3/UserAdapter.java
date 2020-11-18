@@ -2,6 +2,8 @@ package com.example.taller3;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -56,9 +58,19 @@ public class UserAdapter extends BaseAdapter {
         bottonUsuario = view.findViewById(R.id.buttonUsuarioAdapter);
 
         //Asignar imagen
+        imagenUsuario.setImageBitmap(usuarios.get(i).getImagenUsuario());
 
         nombreUsuario.setText(usuarios.get(i).getNombre());
 
+        bottonUsuario.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(context, UserDistanceMapActivity.class);
+                intent.putExtra("uid", usuarios.get(i).getUid());
+                Log.i("UIDENVIADO: ", usuarios.get(i).getUid());
+                context.startActivity(intent);
+            }
+        });
 
         return view;
     }

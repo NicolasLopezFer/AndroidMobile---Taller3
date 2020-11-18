@@ -1,11 +1,16 @@
 package com.example.taller3.Model;
 
+import android.graphics.Bitmap;
+
 public class Usuario {
 
     private String uid;
     private String nombre;
     private String apellido;
     private String identificacion;
+    private Bitmap imagenUsuario;
+
+    public Usuario(){}
 
 
     public Usuario(String uid, String email, String apellido, String identificacion) {
@@ -13,6 +18,22 @@ public class Usuario {
         this.nombre = email;
         this.apellido = apellido;
         this.identificacion = identificacion;
+    }
+
+    public Usuario(String uid,String nombre, String email, String apellido, String identificacion) {
+        this.uid = uid;
+        this.nombre = nombre;
+        this.nombre = email;
+        this.apellido = apellido;
+        this.identificacion = identificacion;
+    }
+
+    public Usuario(String uid, String email, String apellido, String identificacion, Bitmap imagen) {
+        this.uid = uid;
+        this.nombre = email;
+        this.apellido = apellido;
+        this.identificacion = identificacion;
+        this.imagenUsuario = imagen;
     }
 
     public String getUid() {
@@ -47,4 +68,11 @@ public class Usuario {
         this.identificacion = identificacion;
     }
 
+    public Bitmap getImagenUsuario() {
+        return imagenUsuario;
+    }
+
+    public void setImagenUsuario(Bitmap imagenUsuario) {
+        this.imagenUsuario = imagenUsuario;
+    }
 }
