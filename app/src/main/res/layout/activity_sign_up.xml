@@ -4,164 +4,179 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".SignUpActivity"
-    android:padding="10dp">
+    android:padding="10dp"
+    tools:context=".SignUpActivity">
 
-    <EditText
-        android:id="@+id/etNombreRegistro"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="30dp"
-        android:ems="10"
-        android:gravity="center"
-        android:hint="Nombre"
-        android:inputType="textPersonName"
-        app:layout_constraintBottom_toTopOf="@+id/etApellidoRegistro"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.497"
-        app:layout_constraintStart_toStartOf="parent" />
-
-    <EditText
-        android:id="@+id/etEmailRegistro"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:ems="10"
-        android:gravity="center"
-        android:hint="Correo"
-        android:inputType="textEmailAddress"
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent">
 
-    <EditText
-        android:id="@+id/etContraRegistro"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="30dp"
-        android:ems="10"
-        android:gravity="center"
-        android:hint="Contraseña"
-        android:inputType="textPassword"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.502"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/etIdentificacionRegistro" />
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
 
-    <EditText
-        android:id="@+id/etApellidoRegistro"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="30dp"
-        android:ems="10"
-        android:gravity="center"
-        android:hint="Apellido"
-        android:inputType="textPersonName"
-        app:layout_constraintBottom_toTopOf="@+id/etEmailRegistro"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
-
-    <LinearLayout
-        android:id="@+id/linearLayout3"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="30dp"
-        android:layout_marginTop="30dp"
-        android:layout_marginEnd="30dp"
-        android:orientation="horizontal"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/linearLayout2">
-
-        <Button
-            android:id="@+id/btRegistrarse"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="0.8"
-            android:text="Registrarse" />
-
-        <TextView
-            android:id="@+id/textView4"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="0.1"
-            android:visibility="invisible" />
-
-        <Button
-            android:id="@+id/btCancelar"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="0.8"
-            android:text="Cancelar" />
-    </LinearLayout>
-
-    <ImageView
-        android:id="@+id/ivImagenRegistro"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:layout_marginStart="50dp"
-        android:layout_marginTop="30dp"
-        android:layout_marginEnd="50dp"
-        android:layout_marginBottom="30dp"
-        app:layout_constraintBottom_toTopOf="@+id/etNombreRegistro"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        tools:srcCompat="@tools:sample/avatars" />
-
-    <LinearLayout
-        android:id="@+id/linearLayout2"
-        android:layout_width="392dp"
-        android:layout_height="65dp"
-        android:layout_marginTop="30dp"
-        android:orientation="horizontal"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/etContraRegistro">
-
-        <Button
-            android:id="@+id/btObtenerCoordenadasRegistro"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="0.4"
-            android:text="Obtener coordenadas" />
-
-        <LinearLayout
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="0.6"
-            android:orientation="vertical">
-
-            <TextView
-                android:id="@+id/tvLatitudRegistro"
-                android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:layout_weight="0.5"
+            <EditText
+                android:id="@+id/etNombreRegistro"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="30dp"
+                android:ems="10"
                 android:gravity="center"
-                android:text="Latitud" />
+                android:hint="Nombre"
+                android:inputType="textPersonName"
+                app:layout_constraintBottom_toTopOf="@+id/etApellidoRegistro"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintHorizontal_bias="0.497"
+                app:layout_constraintStart_toStartOf="parent" />
 
-            <TextView
-                android:id="@+id/tvLongitudRegistro"
-                android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:layout_weight="0.5"
+            <EditText
+                android:id="@+id/etEmailRegistro"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:ems="10"
                 android:gravity="center"
-                android:text="Longitud" />
-        </LinearLayout>
-    </LinearLayout>
+                android:hint="Correo"
+                android:inputType="textEmailAddress"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
 
-    <EditText
-        android:id="@+id/etIdentificacionRegistro"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="30dp"
-        android:ems="10"
-        android:inputType="number"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.502"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/etEmailRegistro"
-        android:hint="Identificacion"
-        android:gravity="center"/>
+            <EditText
+                android:id="@+id/etContraRegistro"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="30dp"
+                android:ems="10"
+                android:gravity="center"
+                android:hint="Contraseña"
+                android:inputType="textPassword"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintHorizontal_bias="0.502"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/etIdentificacionRegistro" />
+
+            <EditText
+                android:id="@+id/etApellidoRegistro"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="30dp"
+                android:ems="10"
+                android:gravity="center"
+                android:hint="Apellido"
+                android:inputType="textPersonName"
+                app:layout_constraintBottom_toTopOf="@+id/etEmailRegistro"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent" />
+
+            <LinearLayout
+                android:id="@+id/linearLayout3"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="30dp"
+                android:layout_marginTop="30dp"
+                android:layout_marginEnd="30dp"
+                android:orientation="horizontal"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/linearLayout2">
+
+                <Button
+                    android:id="@+id/btRegistrarse"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="0.8"
+                    android:text="Registrarse" />
+
+                <TextView
+                    android:id="@+id/textView4"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="0.1"
+                    android:visibility="invisible" />
+
+                <Button
+                    android:id="@+id/btCancelar"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="0.8"
+                    android:text="Cancelar" />
+            </LinearLayout>
+
+            <ImageView
+                android:id="@+id/ivImagenRegistro"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:layout_marginStart="50dp"
+                android:layout_marginTop="30dp"
+                android:layout_marginEnd="50dp"
+                android:layout_marginBottom="30dp"
+                app:layout_constraintBottom_toTopOf="@+id/etNombreRegistro"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:srcCompat="@android:drawable/ic_menu_gallery"
+                tools:srcCompat="@tools:sample/avatars" />
+
+            <LinearLayout
+                android:id="@+id/linearLayout2"
+                android:layout_width="392dp"
+                android:layout_height="65dp"
+                android:layout_marginTop="30dp"
+                android:orientation="horizontal"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/etContraRegistro">
+
+                <Button
+                    android:id="@+id/btObtenerCoordenadasRegistro"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="0.4"
+                    android:text="Obtener coordenadas" />
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="0.6"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:id="@+id/tvLatitudRegistro"
+                        android:layout_width="match_parent"
+                        android:layout_height="0dp"
+                        android:layout_weight="0.5"
+                        android:gravity="center"
+                        android:text="Latitud" />
+
+                    <TextView
+                        android:id="@+id/tvLongitudRegistro"
+                        android:layout_width="match_parent"
+                        android:layout_height="0dp"
+                        android:layout_weight="0.5"
+                        android:gravity="center"
+                        android:text="Longitud" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <EditText
+                android:id="@+id/etIdentificacionRegistro"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="30dp"
+                android:ems="10"
+                android:gravity="center"
+                android:hint="Identificacion"
+                android:inputType="number"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintHorizontal_bias="0.502"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/etEmailRegistro" />
+        </androidx.constraintlayout.widget.ConstraintLayout>
+    </ScrollView>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
