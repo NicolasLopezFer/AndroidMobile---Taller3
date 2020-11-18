@@ -82,7 +82,6 @@ public class ActiveUsersActivity extends AppCompatActivity {
             e.printStackTrace();
         }
 
-
     }
 
     public void setLista() throws IOException {
@@ -119,30 +118,29 @@ public class ActiveUsersActivity extends AppCompatActivity {
                                     if(b1){
                                         us.setNombre(nom);
                                         us.setUid(uidUnico);
-                                        File localFile = null;
                                         try {
-                                            localFile = File.createTempFile("images","jpg");
+                                            final File localFile = File.createTempFile("images","jpg");
+                                            StorageReference imageRef = mStorageRef.child("profile/"+uidUnico+"/profilePic.jpg");
+                                            Log.i("BUSCIMG","BUSCAR IMAGEN");
+                                            imageRef.getFile(localFile).addOnSuccessListener(new OnSuccessListener<FileDownloadTask.TaskSnapshot>() {
+                                                @Override
+                                                public void onSuccess(FileDownloadTask.TaskSnapshot taskSnapshot) {
+                                                    Bitmap selectedImage = BitmapFactory.decodeFile(localFile.getAbsolutePath());
+                                                    us.setImagenUsuario(selectedImage);
+                                                }
+                                            }).addOnFailureListener(new OnFailureListener() {
+                                                @Override
+                                                public void onFailure(@NonNull Exception e) {
+                                                    Log.i("ERROR", "NO SE CARGO IMAGEN");
+                                                }
+                                            });
+                                            Log.i("USUARIO ANTES DE METER1", us.getNombre());
+                                            Log.i("USUARIO ANTES DE METER2", us.getUid());
+                                            listUsers.add(us);
+                                            b1 = false;
                                         } catch (IOException e) {
                                             e.printStackTrace();
                                         }
-                                        StorageReference imageRef = mStorageRef.child("profile/"+uidUnico+"/profilePic.jpg");
-                                        File finalLocalFile = localFile;
-                                        imageRef.getFile(localFile).addOnSuccessListener(new OnSuccessListener<FileDownloadTask.TaskSnapshot>() {
-                                            @Override
-                                            public void onSuccess(FileDownloadTask.TaskSnapshot taskSnapshot) {
-                                                Bitmap selectedImage = BitmapFactory.decodeFile(finalLocalFile.getAbsolutePath());
-                                                us.setImagenUsuario(selectedImage);
-                                            }
-                                        }).addOnFailureListener(new OnFailureListener() {
-                                            @Override
-                                            public void onFailure(@NonNull Exception e) {
-                                                Log.i("ERROR", "NO SE CARGO IMAGEN");
-                                            }
-                                        });
-                                        Log.i("USUARIO ANTES DE METER1", us.getNombre());
-                                        Log.i("USUARIO ANTES DE METER2", us.getUid());
-                                        listUsers.add(us);
-                                        b1 = false;
                                     }
                                 }
                                 setAdapter();
