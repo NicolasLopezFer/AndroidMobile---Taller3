@@ -65,7 +65,7 @@ public class SignUpActivity extends AppCompatActivity {
     private FirebaseAuth mAuth;
     private FirebaseUser user;
     private Button btnCancelar, btnRegistrar, btnCoordenadas;
-    private EditText nombre, apellido, email, contra;
+    private EditText nombre, apellido, email, contra, identificacion;
     private ImageView imagen;
     private TextView latitud, longitud;
     private AwesomeValidation validator;
@@ -99,6 +99,7 @@ public class SignUpActivity extends AppCompatActivity {
         contra = findViewById(R.id.etContraRegistro);
         latitud = findViewById(R.id.tvLatitudRegistro);
         longitud = findViewById(R.id.tvLongitudRegistro);
+        identificacion = findViewById(R.id.etIdentificacionRegistro);
 
         btnCancelar = findViewById(R.id.btCancelar);
         btnRegistrar = findViewById(R.id.btRegistrarse);
@@ -112,6 +113,7 @@ public class SignUpActivity extends AppCompatActivity {
         validator.addValidation(this, R.id.etContraRegistro, RegexTemplate.NOT_EMPTY, R.string.errorValidacion);
         validator.addValidation(this, R.id.tvLatitudRegistro, RegexTemplate.NOT_EMPTY, R.string.errorValidacion);
         validator.addValidation(this, R.id.tvLongitudRegistro, RegexTemplate.NOT_EMPTY, R.string.errorValidacion);
+        validator.addValidation(this, R.id.etIdentificacionRegistro, RegexTemplate.NOT_EMPTY,R.string.errorValidacion);
 
         btnRegistrar.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -237,8 +239,9 @@ public class SignUpActivity extends AppCompatActivity {
                             String uid = mAuth.getUid();
                             String nombre = SignUpActivity.this.nombre.getText().toString();
                             String apellido = SignUpActivity.this.apellido.getText().toString();
+                            String identificacion = SignUpActivity.this.identificacion.getText().toString();
                             //TODO: Cedula
-                            Usuario usuario = new Usuario(uid,nombre,apellido,"1234");
+                            Usuario usuario = new Usuario(uid,nombre,apellido,identificacion);
 
                             dbReference = database.getReference("users/"+uid);
                             dbReference.setValue(usuario);
