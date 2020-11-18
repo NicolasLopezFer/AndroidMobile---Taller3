@@ -186,7 +186,7 @@ public class MainMapActivity extends FragmentActivity implements OnMapReadyCallb
                         values.add(uid);
                     }
                 }
-                if (contadorAux == 0){
+                if (contadorAux == 0) {
                     old = nuevo;
                     contadorAux++;
                 }
@@ -199,25 +199,26 @@ public class MainMapActivity extends FragmentActivity implements OnMapReadyCallb
                 }
 
                 old = nuevo;
+                if (!changed.equals("")) {
+                    if (!changed.equals(mAuth.getUid()) && contadorAux > 0 && nuevo.get(changed)) {
+                        //TODO: REVISAR SI ES OTRA PERSONA Y ENVIAR NOTIFICACION
 
-                if (!changed.equals(mAuth.getUid())&&contadorAux>0 && nuevo.get(changed)) {
-                    //TODO: REVISAR SI ES OTRA PERSONA Y ENVIAR NOTIFICACION
 
+                        NotificationCompat.Builder builder = new NotificationCompat.Builder(MainMapActivity.this, CHANNEL_ID);
+                        builder.setSmallIcon(R.drawable.bell);
+                        builder.setContentTitle("Cambio de estado");
+                        builder.setContentText("Un usuario cambio de estado");
+                        builder.setPriority(NotificationCompat.PRIORITY_DEFAULT);
 
-                    NotificationCompat.Builder builder = new NotificationCompat.Builder(MainMapActivity.this, CHANNEL_ID);
-                    builder.setSmallIcon(R.drawable.bell);
-                    builder.setContentTitle("Cambio de estado");
-                    builder.setContentText("Un usuario cambio de estado");
-                    builder.setPriority(NotificationCompat.PRIORITY_DEFAULT);
+                        Intent intent = new Intent(MainMapActivity.this, UserDistanceMapActivity.class);
+                        intent.putExtra("uid", dataSnapshot.getValue().toString());
+                        PendingIntent pendingIntent = PendingIntent.getActivity(MainMapActivity.this, 0, intent, 0);
+                        builder.setContentIntent(pendingIntent);
+                        builder.setAutoCancel(true);
 
-                    Intent intent = new Intent(MainMapActivity.this, UserDistanceMapActivity.class);
-                    intent.putExtra("uid", dataSnapshot.getValue().toString());
-                    PendingIntent pendingIntent = PendingIntent.getActivity(MainMapActivity.this, 0, intent, 0);
-                    builder.setContentIntent(pendingIntent);
-                    builder.setAutoCancel(true);
-
-                    NotificationManagerCompat notificationManagerCompat = NotificationManagerCompat.from(MainMapActivity.this);
-                    notificationManagerCompat.notify(notificationId, builder.build());
+                        NotificationManagerCompat notificationManagerCompat = NotificationManagerCompat.from(MainMapActivity.this);
+                        notificationManagerCompat.notify(notificationId, builder.build());
+                    }
                 }
             }
 
@@ -253,6 +254,16 @@ public class MainMapActivity extends FragmentActivity implements OnMapReadyCallb
     protected void onResume() {
         super.onResume();
         startLocationUpdates();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        stopLocationUpdates();
+    }
+
+    private void stopLocationUpdates(){
+        fusedLocationProviderClient.removeLocationUpdates(locationCallback);
     }
 
     /**

@@ -7,7 +7,8 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
-import android.widget.Toast;
+
+import com.example.taller3.Model.Usuario;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -27,9 +28,9 @@ public class ActiveUsersActivity extends AppCompatActivity {
 
         listViewUsers = findViewById(R.id.listViewUsuariosActivos);
         listUsers = new ArrayList<Usuario>();
-        listUsers.add(new Usuario("nico", "correo@mail.com", "lopez", 1020826110, (long)4.5, (long)5.5));
-        listUsers.add(new Usuario("nicoooo", "correo@mail.com", "lopez", 1020826110, (long)4.5, (long)5.5));
-        listUsers.add(new Usuario("nicoooooooo", "correo@mail.com", "lopez", 1020826110, (long)4.5, (long)5.5));
+        listUsers.add(new Usuario("oiahsd","Santi","Caro","1237"));
+        listUsers.add(new Usuario("asfasd","Nico","Ni","654"));
+        listUsers.add(new Usuario("vasd","asd","vasva","24"));
 
         userAdapter = new UserAdapter(this, listUsers);
         listViewUsers.setAdapter(userAdapter);

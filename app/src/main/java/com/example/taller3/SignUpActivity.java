@@ -8,16 +8,13 @@ import androidx.core.content.ContextCompat;
 
 import android.Manifest;
 import android.app.Activity;
-import android.content.Context;
 import android.content.Intent;
 import android.content.IntentSender;
 import android.content.pm.PackageManager;
 import android.location.Geocoder;
 import android.location.Location;
-import android.location.LocationListener;
-import android.location.LocationManager;
+import android.net.Uri;
 import android.os.Bundle;
-import android.os.Looper;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -29,19 +26,16 @@ import android.widget.Toast;
 import com.basgeekball.awesomevalidation.AwesomeValidation;
 import com.basgeekball.awesomevalidation.ValidationStyle;
 import com.basgeekball.awesomevalidation.utility.RegexTemplate;
-import com.example.taller3.Model.User;
+import com.example.taller3.Model.Usuario;
 import com.google.android.gms.common.api.ApiException;
-import com.google.android.gms.common.api.CommonStatusCodes;
 import com.google.android.gms.common.api.ResolvableApiException;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationCallback;
 import com.google.android.gms.location.LocationRequest;
-import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.location.LocationSettingsRequest;
 import com.google.android.gms.location.LocationSettingsResponse;
 import com.google.android.gms.location.LocationSettingsStatusCodes;
-import com.google.android.gms.location.SettingsClient;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
@@ -52,8 +46,9 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.storage.FileDownloadTask;
+import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
+import com.google.firebase.storage.UploadTask;
 
 import java.io.IOException;
 
@@ -83,6 +78,8 @@ public class SignUpActivity extends AppCompatActivity {
     private StorageReference mStorageRef;
     private DatabaseReference dbReference;
     private FirebaseDatabase database;
+    private FirebaseStorage storage;
+    private Uri imageUri;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -90,6 +87,8 @@ public class SignUpActivity extends AppCompatActivity {
         setContentView(R.layout.activity_sign_up);
         mAuth = FirebaseAuth.getInstance();
         database = FirebaseDatabase.getInstance();
+        storage = FirebaseStorage.getInstance();
+
         user = null;
 
         imagen = findViewById(R.id.ivImagenRegistro);
@@ -238,8 +237,8 @@ public class SignUpActivity extends AppCompatActivity {
                             String uid = mAuth.getUid();
                             String nombre = SignUpActivity.this.nombre.getText().toString();
                             String apellido = SignUpActivity.this.apellido.getText().toString();
-
-                            User usuario = new User(uid,nombre,apellido,"1234");
+                            //TODO: Cedula
+                            Usuario usuario = new Usuario(uid,nombre,apellido,"1234");
 
                             dbReference = database.getReference("users/"+uid);
                             dbReference.setValue(usuario);
@@ -247,6 +246,22 @@ public class SignUpActivity extends AppCompatActivity {
                             Toast.makeText(getApplicationContext(), "Cuenta creada correctamente",
                                     Toast.LENGTH_SHORT).show();
                             user = mAuth.getCurrentUser();
+
+                            mStorageRef = storage.getReference("profile/"+uid+"/profilePic.jpg");
+
+                            mStorageRef.putFile(imageUri).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+                                @Override
+                                public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                                    Log.i("STORAGE","IMAGEN GUARDAD");
+                                }
+                            }).addOnFailureListener(new OnFailureListener() {
+                                @Override
+                                public void onFailure(@NonNull Exception e) {
+                                    Log.i("STORAGE","IMAGEN NO GUARDAD");
+                                }
+                            });
+
+
                             pasarNuevaActividad();
                         } else {
                             Toast.makeText(getApplicationContext(), "No se pudo crear la cuenta",
@@ -297,6 +312,11 @@ public class SignUpActivity extends AppCompatActivity {
                 }
                 return;
             }
+            case IMAGE_PICKER_REQUEST:
+                if(resultCode == RESULT_OK){
+                    imageUri = data.getData();
+                }
+                break;
 
         }
     }

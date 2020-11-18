@@ -1,18 +1,18 @@
 package com.example.taller3.Model;
 
-public class User {
+public class Usuario {
+
     private String uid;
     private String nombre;
     private String apellido;
-    private String numeroIdentificacion;
+    private String identificacion;
 
 
-    public User(String uid, String nombre, String apellido, String numeroIdentificacion) {
+    public Usuario(String uid, String email, String apellido, String identificacion) {
         this.uid = uid;
-        this.nombre = nombre;
+        this.nombre = email;
         this.apellido = apellido;
-        this.numeroIdentificacion = numeroIdentificacion;
-
+        this.identificacion = identificacion;
     }
 
     public String getUid() {
@@ -39,11 +39,12 @@ public class User {
         this.apellido = apellido;
     }
 
-    public String getNumeroIdentificacion() {
-        return numeroIdentificacion;
+    public String getIdentificacion() {
+        return identificacion;
     }
 
-    public void setNumeroIdentificacion(String numeroIdentificacion) {
-        this.numeroIdentificacion = numeroIdentificacion;
+    public void setIdentificacion(String identificacion) {
+        this.identificacion = identificacion;
     }
+
 }
