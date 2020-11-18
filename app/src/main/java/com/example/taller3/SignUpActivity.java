@@ -11,6 +11,8 @@ import android.app.Activity;
 import android.content.Intent;
 import android.content.IntentSender;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.location.Geocoder;
 import android.location.Location;
 import android.net.Uri;
@@ -50,7 +52,9 @@ import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 
 import static com.example.taller3.Util.requestPermission;
 
@@ -80,6 +84,7 @@ public class SignUpActivity extends AppCompatActivity {
     private FirebaseDatabase database;
     private FirebaseStorage storage;
     private Uri imageUri;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -322,6 +327,16 @@ public class SignUpActivity extends AppCompatActivity {
             case IMAGE_PICKER_REQUEST:
                 if (resultCode == RESULT_OK) {
                     imageUri = data.getData();
+
+                    Log.i("IMAGEN",imageUri.toString());
+
+                    try{
+                        final InputStream imageStream = getContentResolver().openInputStream(imageUri);
+                        final Bitmap selectedImage = BitmapFactory.decodeStream(imageStream);
+                        imagen.setImageBitmap(selectedImage);
+                    } catch (FileNotFoundException e) {
+                        e.printStackTrace();
+                    }
                 }
                 break;
 
