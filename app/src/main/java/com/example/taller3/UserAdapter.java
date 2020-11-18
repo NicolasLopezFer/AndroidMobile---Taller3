@@ -67,6 +67,7 @@ public class UserAdapter extends BaseAdapter {
             public void onClick(View view) {
                 Intent intent = new Intent(context, UserDistanceMapActivity.class);
                 intent.putExtra("uid", usuarios.get(i).getUid());
+                intent.putExtra("nombre", usuarios.get(i).getNombre());
                 Log.i("UIDENVIADO: ", usuarios.get(i).getUid());
                 context.startActivity(intent);
             }

@@ -127,6 +127,10 @@ public class ActiveUsersActivity extends AppCompatActivity {
                                                 public void onSuccess(FileDownloadTask.TaskSnapshot taskSnapshot) {
                                                     Bitmap selectedImage = BitmapFactory.decodeFile(localFile.getAbsolutePath());
                                                     us.setImagenUsuario(selectedImage);
+                                                    Log.i("USUARIO ANTES DE METER1", us.getNombre());
+                                                    Log.i("USUARIO ANTES DE METER2", us.getUid());
+                                                    listUsers.add(us);
+                                                    setAdapter();
                                                 }
                                             }).addOnFailureListener(new OnFailureListener() {
                                                 @Override
@@ -134,16 +138,14 @@ public class ActiveUsersActivity extends AppCompatActivity {
                                                     Log.i("ERROR", "NO SE CARGO IMAGEN");
                                                 }
                                             });
-                                            Log.i("USUARIO ANTES DE METER1", us.getNombre());
-                                            Log.i("USUARIO ANTES DE METER2", us.getUid());
-                                            listUsers.add(us);
+
                                             b1 = false;
                                         } catch (IOException e) {
                                             e.printStackTrace();
                                         }
                                     }
                                 }
-                                setAdapter();
+
                                 }
 
                         }

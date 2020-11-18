@@ -13,9 +13,6 @@ public class Usuario {
     public Usuario(){}
 
 
-    public Usuario() {
-    }
-
     public Usuario(String uid, String nombre, String apellido, String identificacion) {
         this.uid = uid;
         this.nombre = nombre;
