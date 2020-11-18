@@ -10,6 +10,8 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.example.taller3.Model.Usuario;
+
 import java.util.List;
 
 public class UserAdapter extends BaseAdapter {
@@ -55,7 +57,7 @@ public class UserAdapter extends BaseAdapter {
 
         //Asignar imagen
 
-        nombreUsuario.setText(usuarios.get(i).getName());
+        nombreUsuario.setText(usuarios.get(i).getNombre());
 
 
         return view;

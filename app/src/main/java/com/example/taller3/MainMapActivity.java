@@ -2,13 +2,14 @@ package com.example.taller3;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.app.ActivityCompat;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.FragmentActivity;
 
 import android.Manifest;
-import android.app.Notification;
+import android.app.Activity;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
@@ -25,12 +26,10 @@ import android.os.Looper;
 import android.util.Log;
 import android.view.View;
 import android.widget.FrameLayout;
-import android.widget.ImageView;
 import android.widget.Toast;
 
 import com.github.clans.fab.FloatingActionButton;
 import com.google.android.gms.common.api.ApiException;
-import com.google.android.gms.common.api.CommonStatusCodes;
 import com.google.android.gms.common.api.ResolvableApiException;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationCallback;
@@ -40,7 +39,6 @@ import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.location.LocationSettingsRequest;
 import com.google.android.gms.location.LocationSettingsResponse;
 import com.google.android.gms.location.LocationSettingsStatusCodes;
-import com.google.android.gms.location.SettingsClient;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -48,7 +46,7 @@ import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
-import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
@@ -66,11 +64,14 @@ import org.json.JSONObject;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class MainMapActivity extends FragmentActivity implements OnMapReadyCallback {
 
     private static final String CHANNEL_ID = "MiApp";
-    private int notificationId=66;
+    private int notificationId = 66;
 
     private GoogleMap mMap;
     private ArrayList<Ubicacion> ubicacions;
@@ -82,7 +83,7 @@ public class MainMapActivity extends FragmentActivity implements OnMapReadyCallb
     private static final int REQUEST_CHECK_SETTINGS = 12;
     private Marker locationMarker;
     private int contador = 0;
-    private int contadorSub = 0;
+    private int contadorAux = 0;
     private FrameLayout frameLayout;
 
     private FloatingActionButton disponible;
@@ -91,11 +92,13 @@ public class MainMapActivity extends FragmentActivity implements OnMapReadyCallb
 
     private FirebaseAuth mAuth;
     private FirebaseDatabase database;
-    private DatabaseReference dbRefStatus;
-    private DatabaseReference dbRefLocation;
-    private LatLng posicionActual=null;
+
+    private DatabaseReference dbReference;
+    private LatLng posicionActual = null;
 
     private Boolean estado = false;
+    Map<String, Boolean> old = new HashMap<>();
+    private List<String> values = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -124,7 +127,7 @@ public class MainMapActivity extends FragmentActivity implements OnMapReadyCallb
         Drawable dL = new BitmapDrawable(getResources(), Bitmap.createScaledBitmap(bitmapL, 80, 80, true));
         lista.setImageDrawable(dL);
 
-        dbRefLocation = database.getReference("status/" + mAuth.getUid());
+        dbReference = database.getReference("status/" + mAuth.getUid());
 
         setImageEstado();
         createNotificationChannel();
@@ -168,38 +171,68 @@ public class MainMapActivity extends FragmentActivity implements OnMapReadyCallb
         };
         Util.requestPermission(this, Manifest.permission.ACCESS_FINE_LOCATION, "", LOCATION_CODE);
 
-        dbRefLocation = database.getReference("status");
-        dbRefLocation.addValueEventListener(new ValueEventListener() {
+        dbReference = database.getReference("status");
+        dbReference.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                Log.i("RTDB", dataSnapshot.toString());
-                //TODO: REVISAR SI ES OTRA PERSONA Y ENVIAR NOTIFICACION
-                NotificationCompat.Builder builder = new NotificationCompat.Builder(MainMapActivity.this,CHANNEL_ID);
-                builder.setSmallIcon(R.drawable.bell);
-                builder.setContentTitle("Cambio de estado");
-                builder.setContentText("Un usuario cambio de estado");
-                builder.setPriority(NotificationCompat.PRIORITY_DEFAULT);
+                Map<String, Boolean> nuevo = new HashMap<>();
+                for (DataSnapshot ds : dataSnapshot.getChildren()) {
+                    String uid = ds.getKey();
+                    Boolean state = Boolean.parseBoolean(ds.getValue().toString());
+                    Log.i("RTDB", ds.getValue().toString());
+                    nuevo.put(uid, state);
 
-                Intent intent = new Intent(MainMapActivity.this,UserDistanceMapActivity.class);
-                intent.putExtra("uid",dataSnapshot.getValue().toString());
-                PendingIntent pendingIntent = PendingIntent.getActivity(MainMapActivity.this,0,intent,0);
-                builder.setContentIntent(pendingIntent);
-                builder.setAutoCancel(true);
+                    if (!values.contains(uid)) {
+                        values.add(uid);
+                    }
+                }
+                if (contadorAux == 0) {
+                    old = nuevo;
+                    contadorAux++;
+                }
+                String changed = "";
+                for (String val : values) {
+                    //Log.i("RTDB", val+":"+nuevo.get(val).toString()+"-->"+old.get(val).toString()+"/"+String.valueOf(contadorAux));
+                    if (nuevo.get(val) != old.get(val)) {
+                        changed = val;
+                    }
+                }
 
-                NotificationManagerCompat notificationManagerCompat = NotificationManagerCompat.from(MainMapActivity.this);
-                notificationManagerCompat.notify(notificationId,builder.build());
+                old = nuevo;
+                if (!changed.equals("")) {
+                    if (!changed.equals(mAuth.getUid()) && contadorAux > 0 && nuevo.get(changed)) {
+                        //TODO: REVISAR SI ES OTRA PERSONA Y ENVIAR NOTIFICACION
+
+
+                        NotificationCompat.Builder builder = new NotificationCompat.Builder(MainMapActivity.this, CHANNEL_ID);
+                        builder.setSmallIcon(R.drawable.bell);
+                        builder.setContentTitle("Cambio de estado");
+                        builder.setContentText("Un usuario cambio de estado");
+                        builder.setPriority(NotificationCompat.PRIORITY_DEFAULT);
+
+                        Intent intent = new Intent(MainMapActivity.this, UserDistanceMapActivity.class);
+                        intent.putExtra("uid", dataSnapshot.getValue().toString());
+                        PendingIntent pendingIntent = PendingIntent.getActivity(MainMapActivity.this, 0, intent, 0);
+                        builder.setContentIntent(pendingIntent);
+                        builder.setAutoCancel(true);
+
+                        NotificationManagerCompat notificationManagerCompat = NotificationManagerCompat.from(MainMapActivity.this);
+                        notificationManagerCompat.notify(notificationId, builder.build());
+                    }
+                }
             }
 
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
                 Log.w("RTDB", "error en la consulta", databaseError.toException());
             }
+
         });
 
 
     }
 
-    private void setImageEstado(){
+    private void setImageEstado() {
         estado = !estado;
         Drawable d;
         if (estado) {
@@ -213,14 +246,24 @@ public class MainMapActivity extends FragmentActivity implements OnMapReadyCallb
         }
 
         disponible.setImageDrawable(d);
-        dbRefLocation = database.getReference("status/" + mAuth.getUid());
-        dbRefLocation.setValue(estado);
+        dbReference = database.getReference("status/" + mAuth.getUid());
+        dbReference.setValue(estado);
     }
 
     @Override
     protected void onResume() {
         super.onResume();
         startLocationUpdates();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        stopLocationUpdates();
+    }
+
+    private void stopLocationUpdates(){
+        fusedLocationProviderClient.removeLocationUpdates(locationCallback);
     }
 
     /**
@@ -303,54 +346,64 @@ public class MainMapActivity extends FragmentActivity implements OnMapReadyCallb
         if (mMap != null) {
             if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
 
+                LocationRequest locationRequest = LocationRequest.create();
+                locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
                 LocationSettingsRequest.Builder builder = new LocationSettingsRequest.Builder().addLocationRequest(locationRequest);
-                SettingsClient client = LocationServices.getSettingsClient(this);
-                Task<LocationSettingsResponse> task = client.checkLocationSettings(builder.build());
 
-                /*Si el GPS esta prendido se registra en los updates*/
-                task.addOnSuccessListener(this, new OnSuccessListener<LocationSettingsResponse>() {
+
+                Task<LocationSettingsResponse> result = LocationServices.getSettingsClient(MainMapActivity.this).checkLocationSettings(builder.build());
+
+
+                result.addOnCompleteListener(new OnCompleteListener<LocationSettingsResponse>() {
                     @Override
-                    public void onSuccess(LocationSettingsResponse locationSettingsResponse) {
-                        if (contadorSub == 0) {
-                            startLocationUpdates();
-                            contadorSub++;
+                    public void onComplete(@NonNull Task<LocationSettingsResponse> task) {
+                        try {
+                            LocationSettingsResponse response = task.getResult(ApiException.class);
+                            // All location settings are satisfied. The client can initialize location
+                            // requests here.
+
+
+                            if (ActivityCompat.checkSelfPermission(MainMapActivity.this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(MainMapActivity.this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+
+
+                                fusedLocationProviderClient.getLastLocation().addOnSuccessListener(MainMapActivity.this, new OnSuccessListener<Location>() {
+                                    @Override
+                                    public void onSuccess(Location location) {
+                                        if (location != null) {
+                                            Log.i(" LOCATION ", "Longitud: " + location.getLongitude());
+                                            Log.i(" LOCATION ", "Latitud: " + location.getLatitude());
+                                            placeMarker(location);
+                                        }
+                                    }
+                                });
+                            }
+
+                        } catch (ApiException exception) {
+                            switch (exception.getStatusCode()) {
+                                case LocationSettingsStatusCodes.RESOLUTION_REQUIRED:
+                                    // Location settings are not satisfied. But could be fixed by showing the
+                                    // user a dialog.
+                                    try {
+                                        // Cast to a resolvable exception.
+                                        ResolvableApiException resolvable = (ResolvableApiException) exception;
+                                        // Show the dialog by calling startResolutionForResult(),
+                                        // and check the result in onActivityResult().
+                                        resolvable.startResolutionForResult(MainMapActivity.this, LocationRequest.PRIORITY_HIGH_ACCURACY);
+                                    } catch (IntentSender.SendIntentException e) {
+                                        // Ignore the error.
+                                    } catch (ClassCastException e) {
+                                        // Ignore, should be an impossible error.
+                                    }
+                                    break;
+                                case LocationSettingsStatusCodes.SETTINGS_CHANGE_UNAVAILABLE:
+                                    // Location settings are not satisfied. However, we have no way to fix the
+                                    // settings so we won't show the dialog.
+                                    break;
+                            }
                         }
                     }
                 });
 
-                /*Si el GPS esta apagado pregunta si lo puede prender*/
-                task.addOnFailureListener(this, new OnFailureListener() {
-                    @Override
-                    public void onFailure(@NonNull Exception e) {
-                        int statusCode = ((ApiException) e).getStatusCode();
-                        switch (statusCode) {
-                            case CommonStatusCodes
-                                    .RESOLUTION_REQUIRED:
-                                try {
-                                    ResolvableApiException resolvableApiException = (ResolvableApiException) e;
-                                    resolvableApiException.startResolutionForResult(MainMapActivity.this, REQUEST_CHECK_SETTINGS); //Empieza una actividad.
-                                } catch (IntentSender.SendIntentException ex) {
-                                    ex.printStackTrace();
-                                }
-                                break;
-                            case LocationSettingsStatusCodes
-                                    .SETTINGS_CHANGE_UNAVAILABLE:
-                                break;
-                        }
-                    }
-                });
-
-                fusedLocationProviderClient.getLastLocation().addOnSuccessListener(this, new OnSuccessListener<Location>() {
-                    @Override
-                    public void onSuccess(Location location) {
-                        Log.i("LOCATION", "onSuccess location");
-                        if (location != null) {
-                            Log.i(" LOCATION ", "Longitud: " + location.getLongitude());
-                            Log.i(" LOCATION ", "Latitud: " + location.getLatitude());
-                            placeMarker(location);
-                        }
-                    }
-                });
 
             }
         }
@@ -360,13 +413,13 @@ public class MainMapActivity extends FragmentActivity implements OnMapReadyCallb
         LatLng myLocation = new LatLng(location.getLatitude(), location.getLongitude());
         if (locationMarker != null) {
             locationMarker.remove();
-        }else{
+        } else {
             posicionActual = myLocation;
         }
 
-        if(myLocation != posicionActual){
-            dbRefLocation = database.getReference("location/"+mAuth.getUid());
-            dbRefLocation.setValue(myLocation);
+        if (myLocation != posicionActual) {
+            dbReference = database.getReference("location/" + mAuth.getUid());
+            dbReference.setValue(myLocation);
             posicionActual = myLocation;
         }
         locationMarker = mMap.addMarker(new MarkerOptions().position(myLocation).title("Tú"));
@@ -387,9 +440,9 @@ public class MainMapActivity extends FragmentActivity implements OnMapReadyCallb
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         switch (requestCode) {
-            case REQUEST_CHECK_SETTINGS: {
+            case Activity.RESULT_OK: {
                 if (resultCode == RESULT_OK) {
-                    startLocationUpdates();
+                    Log.i("AA", "AAAAAAAA");
                 } else {
                     Toast.makeText(this, "Sin acceso a la localizacion, hardware deshabilidato!", Toast.LENGTH_SHORT).show();
                 }
@@ -400,12 +453,12 @@ public class MainMapActivity extends FragmentActivity implements OnMapReadyCallb
     }
 
 
-    private void createNotificationChannel(){
-        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O){
+    private void createNotificationChannel() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             CharSequence name = "CanalNotificaciones";
             String descripcion = "Cambio en Firebase";
             int importance = NotificationManager.IMPORTANCE_DEFAULT;
-            NotificationChannel channel = new NotificationChannel(CHANNEL_ID,name,importance);
+            NotificationChannel channel = new NotificationChannel(CHANNEL_ID, name, importance);
 
             channel.setDescription(descripcion);
 
